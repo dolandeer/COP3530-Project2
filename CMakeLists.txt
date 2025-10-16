@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.16)
+project(COP3530-Project2)
+
+set(CMAKE_CXX_STANDARD 17)
+
+add_executable(COP3530-Project2 main.cpp
+        crow_all.h)
+
+set(CPR_USE_SYSTEM_CURL ON) # IMPORTANT: YOU MAY NEED TO HOMEBREW/INSTALL CURL ON YOUR SYSTEM, DO NOT CHANGE
+
+include(FetchContent)
+FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
+        GIT_TAG 6e925d0fcb74377a4aa108eff4edfb6b0aab4750) # Replace with your desired git commit from: https://github.com/libcpr/cpr/releases
+FetchContent_MakeAvailable(cpr)
+
+target_link_libraries(COP3530-Project2 PRIVATE cpr::cpr)
