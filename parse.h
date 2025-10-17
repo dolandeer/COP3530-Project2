@@ -16,7 +16,8 @@ class JSONData {
 class NOAAData {
 private:
     //it may be more efficient to store this as a vector of dictionaries?
-    //format {key = "cz_name/state" || values = [weather type, month]}
+    //format {key = "simplified_cz_name/state" || values = [weather type, month]}
+    //simplified cz name would be found by comparing cz_name against uscities database to remove prefixes
     //would require rewriting some of readCSV and printData, but would simplify getData
     std::vector<std::vector<std::vector<std::string>>> data;  // file<row<column<data>>>
 
