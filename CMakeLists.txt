@@ -1,26 +1,28 @@
 cmake_minimum_required(VERSION 3.16)
 project(COP3530-Project2)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17) # using c++17 for this project
 
-add_definitions(-DASIO_STANDALONE)
+
+add_definitions(-DASIO_STANDALONE) # use asio standalone
+
 add_executable(COP3530-Project2 main.cpp
         crow_all.h
         parse.h
         distance.h
         weightedTrie.h)
 
+
+
 set(CPR_USE_SYSTEM_CURL ON) # IMPORTANT: YOU MAY NEED TO HOMEBREW/INSTALL CURL ON YOUR SYSTEM, DO NOT CHANGE
 
-
-
 include(FetchContent)
-# init cpr
+# init cpr library
 FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git
-        GIT_TAG 6e925d0fcb74377a4aa108eff4edfb6b0aab4750) # Replace with your desired git commit from: https://github.com/libcpr/cpr/releases
+        GIT_TAG 6e925d0fcb74377a4aa108eff4edfb6b0aab4750)
 FetchContent_MakeAvailable(cpr)
 
-#init asio
+#init asio library (dependency for Crow)
 FetchContent_Declare(
         asio
         GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
