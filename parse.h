@@ -20,6 +20,7 @@ private:
 
 public:
     void printData() const { // helper function that prints data to console by row, should mirror database
+        std::cout << std::endl;
         for (const auto& file : data) {
             for (const auto& row : file) {
                 for (const auto& cell : row) {
@@ -33,8 +34,6 @@ public:
     void insertData(std::vector<std::vector<std::string>> input) {
         data.push_back(input);
     }
-
-    std::string getData(int row, int col){} // get data by row and column
 
 
 

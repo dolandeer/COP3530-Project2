@@ -22,7 +22,17 @@ public:
 };
 
 
-
+/*
+populate the trie with the USCities csv
+then increase the weight of each node depending on if it appears within the noaa database
+(important!!) the noaa database uses prefixes on counties such as "coastal" and "southern",
+the best fix I can think of for this is either ignore keywords such as this in the
+data collection process or see if any part of the "cz" is already in the trie and insert that part
+the second option may be more efficient, im not sure if it will work
+keywords ive noticed: coastal, inland, western/eastern/northern/southern
+some of the data also uses a region or landmark instead of a county, we can ignore those as they are
+usually duplicates and would not match up to any city
+*/
 class weightedTrie {
 private:
     trieNode rootNode;
