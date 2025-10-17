@@ -74,6 +74,8 @@ public:
 // we only really need this database for converting city name -> lat/long for calling the API
 // and for weighted trie initialization
 // store data as a vector: {key = "city/state" || values = [county, lat, long]}
+// also store a vector of county names for comparison against NOAA data (NOAA tracks by county)
+// for severe weather data, we can assume every city within a county experienced the same weather
 // storing city and state as key to avoid duplicate cities such as charleston SC and charleston WV
 class USCData {
 
