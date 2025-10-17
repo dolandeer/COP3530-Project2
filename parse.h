@@ -12,9 +12,12 @@ class JSONData {
 
 
 
-//NOAA Parsing (treat ',,' as end of row)
+//NOAA Parsing (treating ',,' as end of row and ignoring all data after)
 class NOAAData {
 private:
+    //it may be more efficient to store this as a vector of dictionaries?
+    //format {key = "cz_name/state" || values = [weather type, month]}
+    //would require rewriting some of readCSV and printData, but would simplify getData
     std::vector<std::vector<std::vector<std::string>>> data;  // file<row<column<data>>>
 
 
@@ -68,6 +71,9 @@ public:
 
 //USCities Parsing (use a for loop to ignore any unwanted data)
 // we only really need this database for converting city name -> lat/long for calling the API
+// and for weighted trie initialization
+// store data as a vector: {key = "city/state" || values = [county, lat, long]}
+// storing city and state as key to avoid duplicate cities such as charleston SC and charleston WV
 class USCData {
 
 };
