@@ -5,14 +5,70 @@
 #include <vector>
 #include <string>
 
-//JSON Parsing
+//JSON Parsing (getting data from the API)
+class JSONData {
+
+};
+
+
+
+//NOAA Parsing (treat ',,' as end of row)
+class NOAAData {
+private:
+    std::vector<std::vector<std::vector<std::string>>> data;  // file<row<column<data>>>
+
+
+public:
+    void printData() const { // helper function that prints data to console by row, should mirror database
+        for (const auto& file : data) {
+            for (const auto& row : file) {
+                for (const auto& cell : row) {
+                    std::cout << cell << ", ";
+                }
+                std::cout << std::endl;
+            }
+        }
+    }
+
+    void insertData(std::vector<std::vector<std::string>> input) {
+        data.push_back(input);
+    }
+
+    std::string getData(int row, int col){} // get data by row and column
 
 
 
 
-//NOAA Parsing (treat ,, as end of row and ignore narratives)
+    // parse a single CSV file
+    std::vector<std::vector<std::string>> readCSV(const std::string& filename) {
+        std::vector<std::vector<std::string>> output;
+        std::ifstream CSVFile("data/noaa_database/" + filename);
+        if (!CSVFile.is_open()) {
+            std::cerr << "Unable to open file: " << filename << std::endl;
+            return output;
+        }
+        std::string line;
+        while (std::getline(CSVFile, line)) {
+            auto pos = line.find(",,");
+            line = line.substr(0, pos); // ignore all data after ,,
+            std::vector<std::string> row;
+            std::stringstream ss(line);
+            std::string cell;
+            while (std::getline(ss, cell, ',')) {
+                row.push_back(cell);
+            }
+            output.push_back(row);
+        }
+        CSVFile.close();
+        return output;
+    }
 
+};
 
 
 
 //USCities Parsing (use a for loop to ignore any unwanted data)
+// we only really need this database for converting city name -> lat/long for calling the API
+class USCData {
+
+};
