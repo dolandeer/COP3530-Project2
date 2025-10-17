@@ -15,8 +15,10 @@ int main() {
     */
 
     //example of parsing NOAA file, will be streamlined in the future
+    /*
     NOAAData noaa;
     std::vector<std::vector<std::string>> in = noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
     noaa.insertData(in);
     noaa.printData();
+    */
 }
