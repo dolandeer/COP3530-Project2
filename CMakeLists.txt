@@ -4,7 +4,8 @@ project(COP3530-Project2)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(COP3530-Project2 main.cpp
-        crow_all.h)
+        crow_all.h
+        parse.h)
 
 set(CPR_USE_SYSTEM_CURL ON) # IMPORTANT: YOU MAY NEED TO HOMEBREW/INSTALL CURL ON YOUR SYSTEM, DO NOT CHANGE
 
