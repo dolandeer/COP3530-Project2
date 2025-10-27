@@ -8,8 +8,8 @@
 class trieNode {
 private:
     int weight = 0;
+    char letter = '\0';
     std::vector<trieNode*> children;
-    char letter = '';
 
 public:
     //constructor
@@ -17,8 +17,25 @@ public:
     trieNode(char letterIn) {
         this->letter = letterIn;
         this->weight = 1;
+        this->children;
     }
-
+    //access functions
+    std::vector<trieNode*> getChildren() const {
+        return this->children;
+    }
+    char getLetter() const {
+        return this->letter;
+    }
+    int getWeight() const {
+        return this->weight;
+    }
+    //modifier functions
+    void increaseWeight() {
+        this->weight++;
+    }
+    void addChild(trieNode* node) {
+        children.push_back(node);
+    }
 };
 
 
@@ -48,7 +65,22 @@ public:
         return this->root;
     }
 
-    bool insert(const std::string& word) {
+    bool insertWord(const std::string& word) {
+
         return false;
+    }
+
+    const trieNode* findLetter(trieNode* node, char letter) {
+        if (node == nullptr) return nullptr;
+        if (node->getLetter() == letter) return node;
+        for (auto child : node->getChildren()) {
+            trieNode* l = findLetter(child, letter);
+            if (l != nullptr) return l;
+        }
+        return nullptr;
+    }
+
+    bool findWord(const std::string& word) {
+
     }
 };

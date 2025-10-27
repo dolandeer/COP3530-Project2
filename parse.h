@@ -16,7 +16,7 @@ class JSONData {
 //NOAA Parsing (treating ',,' as end of row and ignoring all data after)
 class NOAAData {
 private:
-    //it may be more efficient to store this as a vector of dictionaries?
+    //it may be more efficient to store this as a vector of maps?
     //format {key = "simplified_cz_name/state" || values = [weather type, month]}
     //simplified cz name would be found by comparing cz_name against uscities database to remove prefixes
     //would require rewriting some of readCSV and printData, but would simplify getData
@@ -74,12 +74,11 @@ public:
 //USCities Parsing (use a for loop to ignore any unwanted data)
 // we only really need this database for converting city name -> lat/long for calling the API
 // and for weighted trie initialization
-// store data as a vector: {key = "city/state" || values = [county, lat, long]}
-// also store a vector of county names for comparison against NOAA data (NOAA tracks by county)
+// store data as a map: {key = "city/state" || values = [county, lat, long]}
 // for severe weather data, we can assume every city within a county experienced the same weather
 // storing city and state as key to avoid duplicate cities such as charleston SC and charleston WV
 class USCData {
-    std::map<std::string, std::vector<std::string>> data; // {"Orlando/Florida, <FIPS,Orange,x,y,pop>"}
+    std::map<std::string, std::vector<std::string>> data; // {Orlando/Florida, <Orange,x,y,pop>}
 
 public:
     std::vector<std::vector<std::string>> readCSV() {
@@ -109,7 +108,7 @@ public:
         return output;
     }
 
-    void printData(std::vector<std::vector<std::string>> file) const { // helper function that prints data to console by row, should mirror database
+    void printCSVData(std::vector<std::vector<std::string>> file) const { // helper function that prints data to console by row, should mirror database
         std::cout << std::endl;
             for (const auto& row : file) {
                 for (const auto& cell : row) {
@@ -133,15 +132,14 @@ public:
                     count++;
                 }
                 else {
-                    value.push_back(cell);
+                    if (count != 4) value.push_back(cell);
+                    count++;
                 }
             }
             data[key] = value;
         }
     }
-
-
-    void iterateMap() {
+    void iterateMap() { // helper function to ensure data is formatted correctly
         std::map<std::string, std::vector<std::string>>::iterator it;
 
         for (it = data.begin(); it != data.end(); it++)
@@ -155,5 +153,5 @@ public:
         }
     }
 
-
+    //need getData function, map<string, vector<string>> is the format
 };
