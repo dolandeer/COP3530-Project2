@@ -14,9 +14,10 @@ class JSONData {
 
 
 //NOAA Parsing (treating ',,' as end of row and ignoring all data after)
+// REDO FOLLOWING COMMENTS UNDER PRIVATE TAG
 class NOAAData {
 private:
-    //it may be more efficient to store this as a vector of maps?
+    //it may be more efficient to store this as a vector of maps
     //format {key = "simplified_cz_name/state" || values = [weather type, month]}
     //simplified cz name would be found by comparing cz_name against uscities database to remove prefixes
     //would require rewriting some of readCSV and printData, but would simplify getData
