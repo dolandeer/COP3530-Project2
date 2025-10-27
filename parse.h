@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <map>
 
 //JSON Parsing (getting data from the API)
 class JSONData {
@@ -78,5 +79,81 @@ public:
 // for severe weather data, we can assume every city within a county experienced the same weather
 // storing city and state as key to avoid duplicate cities such as charleston SC and charleston WV
 class USCData {
+    std::map<std::string, std::vector<std::string>> data; // {"Orlando/Florida, <FIPS,Orange,x,y,pop>"}
+
+public:
+    std::vector<std::vector<std::string>> readCSV() {
+        std::vector<std::vector<std::string>> output;
+        std::ifstream CSVFile("data/simplemaps_uscities/uscities.csv");
+        if (!CSVFile.is_open()) {
+            std::cerr << "Unable to open file" << std::endl;
+            return output;
+        }
+
+
+        std::string line;
+        while (std::getline(CSVFile, line)) {
+            std::vector<std::string> row;
+            std::stringstream ss(line);
+            std::string cell;
+            int count = 0;
+            while (std::getline(ss, cell, ',')) {
+                row.push_back(cell);
+                count++;
+                if (count == 9) break;
+            }
+            output.push_back(row);
+        }
+        CSVFile.close();
+        insertData(output);
+        return output;
+    }
+
+    void printData(std::vector<std::vector<std::string>> file) const { // helper function that prints data to console by row, should mirror database
+        std::cout << std::endl;
+            for (const auto& row : file) {
+                for (const auto& cell : row) {
+                    std::cout << cell << ", ";
+                }
+                std::cout << std::endl;
+            }
+        }
+
+    void insertData(std::vector<std::vector<std::string>> input) {
+        for (auto row : input) {
+            int count = 0;
+            std::string key = "";
+            std::vector<std::string> value;
+            for (auto cell : row) {
+                cell.replace(cell.begin(),cell.begin()+1,"");
+                cell.replace(cell.end()-1,cell.end(),"");
+                if (count <= 3) { // city/state
+                    if (count != 1 && count != 2) key += cell;
+                    if (count == 0) key += "/";
+                    count++;
+                }
+                else {
+                    value.push_back(cell);
+                }
+            }
+            data[key] = value;
+        }
+    }
+
+
+    void iterateMap() {
+        std::map<std::string, std::vector<std::string>>::iterator it;
+
+        for (it = data.begin(); it != data.end(); it++)
+        {
+            std::cout << it->first    // string (key)
+                      << " : ";
+            for (auto i : it->second) {
+                std::cout << i << ", ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
 
 };

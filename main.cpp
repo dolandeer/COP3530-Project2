@@ -21,4 +21,8 @@ int main() {
     noaa.insertData(in);
     noaa.printData();
     */
+
+    USCData usc;
+    usc.readCSV();
+    usc.iterateMap();
 }
