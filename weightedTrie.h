@@ -65,12 +65,12 @@ public:
         return this->root;
     }
 
-    bool insertWord(const std::string& word) {
+    bool insertWord(const std::string& word) { // TODO
 
         return false;
     }
 
-    const trieNode* findLetter(trieNode* node, char letter) {
+    const trieNode* findLetter(trieNode* node, char letter) { // pass in root
         if (node == nullptr) return nullptr;
         if (node->getLetter() == letter) return node;
         for (auto child : node->getChildren()) {
@@ -80,7 +80,7 @@ public:
         return nullptr;
     }
 
-    bool findWord(const std::string& word) {
+    bool findWord(const std::string& word) { // TODO
 
     }
 };

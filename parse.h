@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include "weightedTrie.h"
 
 //JSON Parsing (getting data from the API)
 class JSONData {
@@ -14,37 +15,34 @@ class JSONData {
 
 
 //NOAA Parsing (treating ',,' as end of row and ignoring all data after)
-// REDO FOLLOWING COMMENTS UNDER PRIVATE TAG
+//TODO remake the NOAAData readCSV AFTER implementing weightedTrie
 class NOAAData {
 private:
-    //it may be more efficient to store this as a vector of maps
-    //format {key = "simplified_cz_name/state" || values = [weather type, month]}
-    //simplified cz name would be found by comparing cz_name against uscities database to remove prefixes
-    //would require rewriting some of readCSV and printData, but would simplify getData
-    std::vector<std::vector<std::vector<std::string>>> data;  // file<row<column<data>>>
+
+
+    // because of how many files we have, each file will be its own structure
+    struct file {
+        std::map<std::string, std::vector<std::string>> fileData;
+        // {key = "simplified_cz_name/state" || values = [weather type, month]}
+        // find simplified cz name on input, compare against already initialized trie
+        // read uscities -> init trie -> read NOAAData (compare against trie for name) -> store NOAAData in min/max heap
+        // api c
+    };
+
+    std::vector<file> data;  // file<{key = "simplified_cz_name/state" || values = [weather type, month]}>
+    weightedTrie* trie = nullptr;
+
 
 
 public:
-    void printData() const { // helper function that prints data to console by row, should mirror database
-        std::cout << std::endl;
-        for (const auto& file : data) {
-            for (const auto& row : file) {
-                for (const auto& cell : row) {
-                    std::cout << cell << ", ";
-                }
-                std::cout << std::endl;
-            }
-        }
-    }
-
-    void insertData(std::vector<std::vector<std::string>> input) {
-        data.push_back(input);
+    void printData() const { // TODO helper function that prints data to console by row, should mirror database
     }
 
 
 
 
-    // parse a single CSV file
+
+    // parse a single CSV file TODO redo this, dont insert data automatically, make an insertData function
     std::vector<std::vector<std::string>> readCSV(const std::string& filename) {
         std::vector<std::vector<std::string>> output;
         std::ifstream CSVFile("data/noaa_database/" + filename);
@@ -68,6 +66,10 @@ public:
         return output;
     }
 
+    void insertData(){} //TODO this will insert info into data, make sure to compare against trie here
+
+    void getData(){} //TODO
+
 };
 
 
@@ -82,6 +84,7 @@ class USCData {
     std::map<std::string, std::vector<std::string>> data; // {Orlando/Florida, <Orange,x,y,pop>}
 
 public:
+    //parses CSV
     std::vector<std::vector<std::string>> readCSV() {
         std::vector<std::vector<std::string>> output;
         std::ifstream CSVFile("data/simplemaps_uscities/uscities.csv");
@@ -105,20 +108,11 @@ public:
             output.push_back(row);
         }
         CSVFile.close();
-        insertData(output);
+        //insertData(output);
         return output;
     }
 
-    void printCSVData(std::vector<std::vector<std::string>> file) const { // helper function that prints data to console by row, should mirror database
-        std::cout << std::endl;
-            for (const auto& row : file) {
-                for (const auto& cell : row) {
-                    std::cout << cell << ", ";
-                }
-                std::cout << std::endl;
-            }
-        }
-
+    //inserts output of readCSV into data
     void insertData(std::vector<std::vector<std::string>> input) {
         for (auto row : input) {
             int count = 0;
@@ -140,6 +134,8 @@ public:
             data[key] = value;
         }
     }
+
+    //iterates data to verify its stored properly
     void iterateMap() { // helper function to ensure data is formatted correctly
         std::map<std::string, std::vector<std::string>>::iterator it;
 
@@ -154,5 +150,5 @@ public:
         }
     }
 
-    //need getData function, map<string, vector<string>> is the format
+    //TODO need getData function, map<string, vector<string>> is the format
 };

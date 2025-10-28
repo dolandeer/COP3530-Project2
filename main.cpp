@@ -22,7 +22,7 @@ int main() {
     noaa.printData();
     */
 
-    USCData usc;
-    usc.readCSV();
-    usc.iterateMap();
+    //USCData usc;
+    //usc.readCSV();
+    //usc.iterateMap();
 }
