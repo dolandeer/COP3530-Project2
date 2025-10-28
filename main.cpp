@@ -14,6 +14,8 @@ int main() {
     std::cout << r.text;                         // JSON text string
     */
 
+    //TEST
+
     //example of parsing NOAA file, will be streamlined in the future
     /*
     NOAAData noaa;
