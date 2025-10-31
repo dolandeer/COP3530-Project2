@@ -9,33 +9,32 @@ class trieNode {
 private:
     int weight = 0;
     char letter = '\0';
-    std::vector<trieNode*> children;
 
 public:
+    trieNode* children[27]; //0-25 are alphabetical, 26 is space
+    bool isLeaf = false;
     //constructor
-    trieNode() = default;
-    trieNode(char letterIn) {
-        this->letter = letterIn;
-        this->weight = 1;
-        this->children;
+    trieNode() {
+        for (int i = 0; i<27; i++) {
+            children[i] = nullptr;
+        }
+    }
+    trieNode(char key) {
+        for (int i = 0; i<27; i++) {
+            children[i] = nullptr;
+        }
+        this->letter = key;
     }
     //access functions
-    std::vector<trieNode*> getChildren() const {
-        return this->children;
-    }
-    char getLetter() const {
-        return this->letter;
-    }
-    int getWeight() const {
-        return this->weight;
+    char getLetter() const {return this->letter;}
+    int getWeight() const {return this->weight;}
+    int getNumChildren() {
+        int counter = 0;
+        for (int i = 0; i<27; i++) {if (this->children[i] != nullptr) counter++;}
+        return counter;
     }
     //modifier functions
-    void increaseWeight() {
-        this->weight++;
-    }
-    void addChild(trieNode* node) {
-        children.push_back(node);
-    }
+    void increaseWeight() {this->weight++;}
 };
 
 
@@ -58,29 +57,106 @@ private:
 public:
     //constructors
     weightedTrie() = default;
-    ~weightedTrie() = default; // destructor
+    ~weightedTrie() {
+        deleteRecursive(this->root);
+        //this->root = nullptr;
+    }; // destructor
 
     //functions
-    trieNode* getRoot() {
-        return this->root;
-    }
-
-    bool insertWord(const std::string& word) { // TODO
-
-        return false;
-    }
-
-    const trieNode* findLetter(trieNode* node, char letter) { // pass in root
-        if (node == nullptr) return nullptr;
-        if (node->getLetter() == letter) return node;
-        for (auto child : node->getChildren()) {
-            trieNode* l = findLetter(child, letter);
-            if (l != nullptr) return l;
+    void deleteRecursive(trieNode* node) {
+        if (node != nullptr) {
+            for (int i = 0; i < 27; ++i) {
+                if (node->children[i] != nullptr) {
+                    deleteRecursive(node->children[i]);
+                    node->children[i] = nullptr;
+                }
+            }
+            if (node != root) delete (node);
         }
-        return nullptr;
     }
 
-    bool findWord(const std::string& word) { // TODO
 
+    void insertWord(trieNode* root, const std::string& word) {
+        trieNode* current = root;
+        current->increaseWeight(); // the root will hold the number of words present within the trie
+        for (char letter : word) {
+            if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';} // 'A' = 'a'
+            int index = letter - 'a';
+            if (letter == ' ') index = 26;
+            if (current->children[index] == nullptr) {
+                trieNode* newNode = new trieNode(letter);
+                current->children[index] = newNode;
+            }
+            current = current->children[index];
+            current->increaseWeight();
+        }
+        current->isLeaf = true; // if a node is marked as isLeaf, that means that it is the end of a word
     }
+
+
+
+    bool trieSearch(trieNode* root, const std::string& word) {
+        trieNode* current = root;
+        for (char letter : word) {
+            if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';} // 'A' = 'a'
+            if (current->children[letter - 'a'] == nullptr && letter!=' '){return false;} // does not exist
+            int index = letter - 'a';
+            if (letter == ' ') index = 26;
+            //DEBUG:
+            std::cout << "WEIGHT OF " << current->getLetter() << ":" << current->getWeight() << std::endl;
+            //
+            current = current->children[index]; // does exist, continue down
+        }
+        //DEBUG:
+        std::cout << "WEIGHT OF " << current->getLetter() << ":" << current->getWeight() << std::endl;
+        //
+        return current->isLeaf;
+    }
+
+    std::string autocomplete(trieNode* root, const std::string& word, bool inverse) { // autocompletes
+        trieNode* current = root;
+        std::string output;
+        for (char letter : word) {
+            if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';} // 'A' = 'a'
+            int index = letter - 'a';
+            if (letter == ' ') index = 26;
+            if (current->children[index] == nullptr){return "";} // does not exist
+            current = current->children[index]; // does exist, continue down
+            output += letter;
+        }
+        if (current->isLeaf) return output; // we have input a real word
+        while (!current->isLeaf) {
+            if (current->getNumChildren() == 0) return output;
+            trieNode* target = nullptr;
+            for (int i = 0; i<27; i++) {
+                if (current->children[i] != nullptr) {
+                    if (target==nullptr) target = current->children[i];
+                    if (!inverse&&current->children[i]->getWeight() > target->getWeight()) target = current->children[i]; //prioritize HIGHER
+                    if (inverse&&current->children[i]->getWeight() < target->getWeight()) target = current->children[i]; //prioritize LOWER
+                }
+            }
+            current = target;
+            if (current != nullptr) output += current->getLetter();
+        }
+        return output;
+    }
+
+    // WRAPPERS
+    void insertWord(const std::string& word) {
+        trieNode* root = this->getRoot();
+        insertWord(root, word);
+    }
+
+    bool trieSearch(const std::string& word) {
+        trieNode* root = this->getRoot();
+        return trieSearch(root, word);
+    }
+    std::string autocomplete(const std::string& word, const bool inverse = false) { // if inverse is true, then complete by LOWEST weight
+        trieNode* root = this->getRoot();
+        return autocomplete(root, word, inverse);
+    }
+
+    // HELPERS
+    int numWords() {return this->getRoot()->getWeight();}
+    trieNode* getRoot() {return this->root;}
 };
