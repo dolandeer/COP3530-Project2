@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cpr/cpr.h>
 #include "crow_all.h"
-//#include "parse.h"
+#include "parse.h"
 
 
 int main() {
@@ -24,7 +24,21 @@ int main() {
     noaa.printData();
     */
 
-    //USCData usc;
-    //usc.readCSV();
-    //usc.iterateMap();
+    USCData usc;
+    usc.readCSV();
+    usc.iterateMap();
+
+    weightedTrie testTrie;
+    testTrie.insertWord("abcd efg");
+    testTrie.insertWord("abcd efghij");
+    testTrie.insertWord("abcd efghijk");
+    testTrie.insertWord("abcd efghi");
+    testTrie.insertWord("abcd efghl");
+    testTrie.insertWord("ab cdefg");
+    testTrie.insertWord("aaaaaaaaaa");
+    std::cout << testTrie.trieSearch("aaaaaaaaaa") << std::endl;
+    std::cout << testTrie.autocomplete("abcd efgh") << std::endl;
+    std::cout << testTrie.autocomplete("aa") << std::endl;
+
+    //std::cout << testTrie.trieSearch("TEST T");
 }
