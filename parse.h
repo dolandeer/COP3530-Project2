@@ -22,14 +22,14 @@ private:
 
     // because of how many files we have, each file will be its own structure
     struct file {
-        std::unordered_map<std::string, std::vector<std::string>> fileData;
-        // {key = "simplified_cz_name/state" || values = [weather type, month]}
+        std::unordered_map<std::string, std::vector<std::string>> fileData; // use std::tuple<std::string, int, int>
+        // {key = "simplified_cz_name/state" || values = [weather type, month, year]}
         // find simplified cz name on input, compare against already initialized trie
         // read uscities -> init trie -> read NOAAData (compare against trie for name) -> store NOAAData in min/max heap
         // api c
     };
 
-    std::vector<file> data;  // file<{key = "simplified_cz_name/state" || values = [weather type, month]}>
+    std::vector<file> data;  // file<{key = "simplified_cz_name/state" || values = [weather type, month, year]}>
     weightedTrie* trie = nullptr;
 
 
@@ -46,12 +46,18 @@ public:
     //HELPER FUNCTIONS
     weightedTrie* getTrie() const {return this->trie;}
 
-    void printData() const {} // TODO helper function that prints data to console by row, should mirror database}
+    void printData(file in) const {
+    } // TODO helper function that prints data to console by row, should mirror database}
 
 
     //MAIN FUNCTIONS
 
     // parse a single CSV file, return format row<col<cell>>
+    //END_YEARMONTH at col 4 : int (format "200012" = December of 2000)
+    //event type at col 13 : string
+    //cz_name at col 16 : string (NEEDS TO BE SIMPLFIED)
+    //STATE at col 9 : string
+    //read only important cells!!
     std::vector<std::vector<std::string>> readCSV(const std::string& filename) {
         std::vector<std::vector<std::string>> output;
         std::ifstream CSVFile("data/noaa_database/" + filename);
@@ -72,8 +78,12 @@ public:
                     cell.replace(cell.end()-1,cell.end(),"");
                 }
                 row.push_back(cell);
+
+                //DEBUG
+                std::cout << cell << ", ";
             }
             output.push_back(row);
+            std::cout << std::endl;
         }
         CSVFile.close();
         return output;
@@ -94,7 +104,7 @@ public:
         return false;
     }
 
-    void insertData(){} //TODO this will insert info into data, make sure to compare against trie before
+    void insertData(file input){} //TODO this will insert info into data, make sure to compare against trie before
 
     void getData(){} //TODO will return data from the map
 
@@ -110,6 +120,7 @@ public:
 // storing city and state as key to avoid duplicate cities such as charleston SC and charleston WV
 class USCData {
     std::unordered_map<std::string, std::vector<std::string>> data; // {Orlando/Florida, <Orange,x,y,pop>}
+    std::unordered_map<std::string, std::vector<trieNode*>> countyMap;
     weightedTrie* trie = nullptr;
 
 public:
@@ -144,6 +155,7 @@ public:
     }
 
     //inserts output of readCSV into data
+    //TODO init other map with {County/State, (later)vector<trieNode* city>}
     void insertData(const std::vector<std::vector<std::string>>& input) {
         for (const auto& row : input) {
             int count = 0;
@@ -178,15 +190,31 @@ public:
             }
             std::cout << std::endl;
         }
+        for (auto it1 = countyMap.begin(); it1 != countyMap.end(); it1++)
+        {
+            std::cout << it1->first    // string (key)
+                      << " : ";
+            for (const auto& i : it1->second) {
+                std::cout << i->getCity() << ", ";
+            }
+            std::cout << std::endl;
+        }
     }
 
     void initTrie() {
+        //init trie with City/State as nodes, leaf node stores County/State
         if (trie == nullptr) return;
         std::unordered_map<std::string, std::vector<std::string>>::iterator it;
         for (it = data.begin(); it != data.end(); it++) {
-            trie->insertWord(it->first);
+            trieNode* current = trie->insertWord(it->first);
+            std::string county = it->second[0];
+            std::string key = county + "/" + it->first.substr(it->first.find("/") + 1);
+            countyMap[key].push_back(trie->trieSearch(it->first));
+            current->setCounty(key);
         }
+        //init map with {County/State, vector<trieNode* city> cities}
     }
+
 
     //TODO need getData function, map<string, vector<string>> is the format
 

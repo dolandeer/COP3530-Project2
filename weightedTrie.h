@@ -9,6 +9,10 @@ class trieNode {
 private:
     int weight = 0;
     char letter = '\0';
+    std::string CityState;
+    std::string CountyState;
+    //make each leaf node store the county of the city
+    //every time a county appears increment each city in the county by 1
 
 public:
     trieNode* children[28]; //0-25 are alphabetical, 26 is space
@@ -32,6 +36,18 @@ public:
         int counter = 0;
         for (int i = 0; i<28; i++) {if (this->children[i] != nullptr) counter++;}
         return counter;
+    }
+    std::string getCity() {
+        return this->CityState;
+    }
+    std::string getCounty() {
+        return this->CountyState;
+    }
+    void setCity(std::string word) {
+        this->CityState = word;
+    }
+    void setCounty(std::string word) {
+        this->CountyState = word;
     }
     //modifier functions
     void increaseWeight() {this->weight++;}
@@ -76,7 +92,7 @@ public:
     }
 
 
-    void insertWord(trieNode* root, const std::string& word) {
+    trieNode* insertWord(trieNode* root, const std::string& word) {
         trieNode* current = root;
         current->increaseWeight(); // the root will hold the number of words present within the trie
         for (char letter : word) {
@@ -90,10 +106,16 @@ public:
             current = current->children[index];
             current->increaseWeight();
         }
+        current->setCity(word);
         current->isLeaf = true; // if a node is marked as isLeaf, that means that it is the end of a word
+        return current;
     }
 
-    bool trieSearch(trieNode* root, const std::string& word) {
+    void setCounty(trieNode* node, std::string word) {
+        node->setCounty(word);
+    }
+
+    trieNode* trieSearch(trieNode* root, const std::string& word) {
         trieNode* current = root;
         for (char letter : word) {
             int index = indexLetter(letter);
@@ -101,13 +123,14 @@ public:
             //DEBUG:
             //std::cout << "WEIGHT OF " << current->getLetter() << ":" << current->getWeight() << std::endl;
             //
-            if (current->children[index] == nullptr) return false;
+            if (current->children[index] == nullptr) return nullptr;
             current = current->children[index]; // does exist, continue down
         }
         //DEBUG:
         //std::cout << "WEIGHT OF " << current->getLetter() << ":" << current->getWeight() << std::endl;
         //
-        return current->isLeaf;
+        if (current->isLeaf) return current;
+        return nullptr;
     }
 
     std::string autocomplete(trieNode* root, const std::string& word, bool inverse) { // autocompletes
@@ -138,12 +161,12 @@ public:
     }
 
     // WRAPPERS
-    void insertWord(const std::string& word) {
+    trieNode* insertWord(const std::string& word) {
         trieNode* root = this->getRoot();
-        insertWord(root, word);
+        return insertWord(root, word);
     }
 
-    bool trieSearch(const std::string& word) {
+    trieNode* trieSearch(const std::string& word) {
         trieNode* root = this->getRoot();
         return trieSearch(root, word);
     }

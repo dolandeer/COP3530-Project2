@@ -29,13 +29,16 @@ int main() {
 
     USCData usc(triePtr);
     usc.readCSV();
-    usc.iterateMap();
     usc.initTrie();
+
 
 
     std::cout << testTrie.autocomplete("orlando/") << std::endl;
     NOAAData noaa(triePtr);
-    std::cout << noaa.compareCity("downtown Orlando/Florida") << std::endl;
+    std::cout << noaa.compareCity("downtown Orlando/Florida") << std::endl; // returns "Orlando/Florida" true
+    std::cout << testTrie.trieSearch("ORLANDO/Florida")->getCounty();
+
+    //noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
 
     //std::cout << testTrie.trieSearch("TEST T");
 }
