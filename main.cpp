@@ -2,6 +2,7 @@
 #include <cpr/cpr.h>
 #include "crow_all.h"
 #include "parse.h"
+#include "datahandler.h"
 
 
 int main() {
@@ -24,20 +25,31 @@ int main() {
     noaa.insertData(in);
     noaa.printData();
     */
+    //INITIALIZATION:
     weightedTrie testTrie;
     weightedTrie* triePtr = &testTrie;
-
     USCData usc(triePtr);
-    usc.readCSV();
-    usc.initTrie();
+    USCData* uscPtr = &usc;
+    NOAAData noaa(triePtr, uscPtr);
+    NOAAData* noaaPtr = &noaa;
+    MinHeap heap;
+    MinHeap* heapPtr = &heap;
+    dataHandler handler(noaaPtr,uscPtr,triePtr,heapPtr);
+    //CODE BELOW:
+
+    std::string city = handler.autocomplete("soul");
+    std::cout << city << std::endl;
 
 
+    auto vec = handler.getCitySevereEvents(city);
+    for (auto event : vec) {
+        std::cout << " {" << event.eventType << ", " << event.year << event.month << "} " << std::endl;
+    }
 
-    std::cout << testTrie.autocomplete("orlando/") << std::endl;
-    NOAAData noaa(triePtr);
-    noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
-    std::cout << noaa.compareCity("downtown Orlando/Florida") << std::endl; // returns "Orlando/Florida" true
-    std::cout << testTrie.trieSearch("ORLANDO/Florida")->getCounty();
+    std::cout << handler.heapSize() << std::endl;
+    handler.printTopHeapNode();
+    handler.printTopNodes(10);
+    //handler.printWeatherEventState("florida");
 
     //noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
 
