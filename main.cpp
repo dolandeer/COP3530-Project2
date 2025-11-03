@@ -2,6 +2,7 @@
 #include <cpr/cpr.h>
 #include "crow_all.h"
 #include "parse.h"
+#include "datahandler.h"
 
 
 int main() {
@@ -26,18 +27,12 @@ int main() {
     */
     weightedTrie testTrie;
     weightedTrie* triePtr = &testTrie;
-
     USCData usc(triePtr);
-    usc.readCSV();
-    usc.initTrie();
+    USCData* uscPtr = &usc;
+    NOAAData noaa(triePtr, uscPtr);
+    NOAAData* noaaPtr = &noaa;
 
-
-
-    std::cout << testTrie.autocomplete("orlando/") << std::endl;
-    NOAAData noaa(triePtr);
-    noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
-    std::cout << noaa.compareCity("downtown Orlando/Florida") << std::endl; // returns "Orlando/Florida" true
-    std::cout << testTrie.trieSearch("ORLANDO/Florida")->getCounty();
+    dataHandler handler(noaaPtr,uscPtr,triePtr);
 
     //noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
 

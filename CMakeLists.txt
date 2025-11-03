@@ -11,7 +11,8 @@ add_executable(COP3530-Project2 main.cpp
         parse.h
         distance.h
         weightedTrie.h
-        datahandler.h)
+        datahandler.h
+        minHeap)
 
 
 

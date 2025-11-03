@@ -15,7 +15,7 @@ using namespace std;
 // Each city and its weight
 struct Node {
     string cityName;
-    int weight;
+    int weight; //weight (score) = distanceFrom78(F) + numSevereEvents(month) / numEvents(month)
 
     Node(string name, int w = 0) {
         cityName = name;

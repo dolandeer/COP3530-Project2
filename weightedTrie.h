@@ -10,7 +10,6 @@ private:
     int weight = 0;
     char letter = '\0';
     std::string CityState;
-    std::string CountyState;
     //make each leaf node store the county of the city
     //every time a county appears increment each city in the county by 1
 
@@ -37,18 +36,14 @@ public:
         for (int i = 0; i<28; i++) {if (this->children[i] != nullptr) counter++;}
         return counter;
     }
-    std::string getCity() {
+    std::string getCityState() {
         return this->CityState;
     }
-    std::string getCounty() {
-        return this->CountyState;
-    }
+
     void setCity(std::string word) {
         this->CityState = word;
     }
-    void setCounty(std::string word) {
-        this->CountyState = word;
-    }
+
     //modifier functions
     void increaseWeight() {this->weight++;}
 };
@@ -110,10 +105,6 @@ public:
         current->setCity(word);
         current->isLeaf = true; // if a node is marked as isLeaf, that means that it is the end of a word
         return current;
-    }
-
-    void setCounty(trieNode* node, std::string word) {
-        node->setCounty(word);
     }
 
     trieNode* trieSearch(trieNode* root, const std::string& word) {
