@@ -11,9 +11,12 @@
 #include "parse.h"
 
 //JSON Parsing (getting data from the API)
+//TODO json parsing for api calls
 class JSONData {
 
 };
+
+//TODO update all comments to reflect what is actually happening, many are completely incorrect at this point
 
 
 //USCities Parsing (use a for loop to ignore any unwanted data)
@@ -291,10 +294,10 @@ public:
         if (rawName.find("GULF") != std::string::npos || rawName.find("BAY") != std::string::npos || rawName.find("OUT ") != std::string::npos) return "";
         // all of the prefixes I could find
         std::vector<std::string> prefixes = {"NORTH ", "SOUTH ", "NORTHERN ", "SOUTHERN ", "EASTERN ", "WESTERN ",
-            "EAST ", "WEST ", "CENTRAL ", "UPPER ", "LOWER ", "COASTAL ", "INLAND "
+            "EAST ","WEST ", "CENTRAL ","UPPER ", "LOWER ", "COASTAL ", "INLAND "
         };
         //suffixes
-        std::vector<std::string> suffixes = {" COUNTY", " ZONE", " AREA", " PARISH"};
+        std::vector<std::string> suffixes = {" COUNTY"," ZONE", " AREA", " PARISH"};
         //actually remove them
         for (auto prefix : prefixes) {
             if (rawName.find(prefix) == 0) {
