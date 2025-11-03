@@ -64,6 +64,7 @@ the second option may be more efficient, im not sure if it will work
 keywords ive noticed: coastal, inland, western/eastern/northern/southern
 some of the data also uses a region or landmark instead of a county, we can ignore those as they are
 usually duplicates and would not match up to any city
+^^^ to ignore, if compareCity fails then simply do not insert the data anywhere
 */
 class weightedTrie {
 private:
@@ -179,7 +180,7 @@ public:
     int numWords() {return this->getRoot()->getWeight();}
     trieNode* getRoot() {return this->root;}
 
-    int indexLetter(char letter) {
+    int indexLetter(char letter) { //narrowing conversion from capital to lowercase
         if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';}
         if (letter == ' ') return 26;
         if (letter == '/') return 27;

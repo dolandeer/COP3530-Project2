@@ -21,15 +21,13 @@ private:
 
 
     // because of how many files we have, each file will be its own structure
-    struct file {
-        std::unordered_map<std::string, std::vector<std::string>> fileData; // use std::tuple<std::string, int, int>
-        // {key = "simplified_cz_name/state" || values = [weather type, month, year]}
-        // find simplified cz name on input, compare against already initialized trie
-        // read uscities -> init trie -> read NOAAData (compare against trie for name) -> store NOAAData in min/max heap
-        // api c
+    struct weatherRecord {
+        std::string eventType;
+        int year;
+        int month;
     };
 
-    std::vector<file> data;  // file<{key = "simplified_cz_name/state" || values = [weather type, month, year]}>
+    std::unordered_map<std::string, std::vector<weatherRecord>> data;  // file<{key = "simplified_cz_name/state" || values = [weather type, month, year]}>
     weightedTrie* trie = nullptr;
 
 
@@ -46,9 +44,6 @@ public:
     //HELPER FUNCTIONS
     weightedTrie* getTrie() const {return this->trie;}
 
-    void printData(file in) const {
-    } // TODO helper function that prints data to console by row, should mirror database}
-
 
     //MAIN FUNCTIONS
 
@@ -58,53 +53,67 @@ public:
     //cz_name at col 16 : string (NEEDS TO BE SIMPLFIED)
     //STATE at col 9 : string
     //read only important cells!!
-    std::vector<std::vector<std::string>> readCSV(const std::string& filename) {
+    void readCSV(const std::string& filename) {
+        int column = 0;
         std::vector<std::vector<std::string>> output;
         std::ifstream CSVFile("data/noaa_database/" + filename);
         if (!CSVFile.is_open()) {
             std::cerr << "Unable to open file: " << filename << std::endl;
-            return output;
+            return;
         }
         std::string line;
         while (std::getline(CSVFile, line)) {
+            //row
+            column = 0;
             auto pos = line.find(",,");
             line = line.substr(0, pos); // ignore all data after ,,
-            std::vector<std::string> row;
             std::stringstream ss(line);
             std::string cell;
+
+            std::string yearMonth;
+            std::string state;
+            std::string eventType;
+            std::string czName;
+
             while (std::getline(ss, cell, ',')) {
+                column++;
+                //column
                 if (cell[0] == '"') { // removal of quotations
                     cell.replace(cell.begin(),cell.begin()+1,"");
                     cell.replace(cell.end()-1,cell.end(),"");
                 }
-                row.push_back(cell);
-
-                //DEBUG
-                std::cout << cell << ", ";
+                if (column == 4) yearMonth = cell;
+                if (column == 9) state = cell;
+                if (column == 13) eventType = cell;
+                if (column == 16) czName = cell;
             }
-            output.push_back(row);
-            std::cout << std::endl;
+            std::string city = compareCity(czName + "/" + state);
+            if (city.empty()) continue; // skip if not found in trie
+            int year = std::stoi(yearMonth.substr(0, 4));
+            int month = std::stoi(yearMonth.substr(4, 2));
+            weatherRecord curr;
+            curr.eventType = eventType;
+            curr.month = month;
+            curr.year = year;
+            data[city].push_back(curr);
         }
         CSVFile.close();
-        return output;
     }
 
-    bool compareCity(std::string cityName) { // CSV->Trie comparison function
+    std::string compareCity(std::string cityName) { // CSV->Trie comparison function
         if (this->trie == nullptr) {
             std::cerr << "compareCity failed" << std::endl;
-            return false;
+            return "";
         }
 
-        if (trie->trieSearch(cityName)) return true;
+        if (trie->trieSearch(cityName)) return cityName;
         cityName=cityName.substr(cityName.find_first_of(" \t")+1); //remove prefix
-        if (trie->trieSearch(cityName)) return true;
+        if (trie->trieSearch(cityName)) return cityName;
 
         //failed for some reason
         std::cerr << "compareCity failed" << std::endl;
-        return false;
+        return "";
     }
-
-    void insertData(file input){} //TODO this will insert info into data, make sure to compare against trie before
 
     void getData(){} //TODO will return data from the map
 
@@ -155,7 +164,6 @@ public:
     }
 
     //inserts output of readCSV into data
-    //TODO init other map with {County/State, (later)vector<trieNode* city>}
     void insertData(const std::vector<std::vector<std::string>>& input) {
         for (const auto& row : input) {
             int count = 0;
@@ -216,9 +224,14 @@ public:
     }
 
 
-    //TODO need getData function, map<string, vector<string>> is the format
+    //TODO need getData function, map<string, vector<string>> is the format of data
+    //getData will return either City/State or County/State
+    std::map<std::string, std::vector<std::string>> getData(int type) {
+        if (type == 1) {
 
-    std::map<std::string, std::vector<std::string>> getData() {
+        }
+        else if (type == 2) {
 
+        }
     }
 };

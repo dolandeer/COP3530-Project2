@@ -10,7 +10,8 @@ add_executable(COP3530-Project2 main.cpp
         crow_all.h
         parse.h
         distance.h
-        weightedTrie.h)
+        weightedTrie.h
+        datahandler.h)
 
 
 

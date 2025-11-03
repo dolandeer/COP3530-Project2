@@ -35,6 +35,7 @@ int main() {
 
     std::cout << testTrie.autocomplete("orlando/") << std::endl;
     NOAAData noaa(triePtr);
+    noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
     std::cout << noaa.compareCity("downtown Orlando/Florida") << std::endl; // returns "Orlando/Florida" true
     std::cout << testTrie.trieSearch("ORLANDO/Florida")->getCounty();
 
