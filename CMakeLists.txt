@@ -12,7 +12,7 @@ add_executable(COP3530-Project2 main.cpp
         distance.h
         weightedTrie.h
         datahandler.h
-        minHeap)
+        minHeap.h)
 
 
 

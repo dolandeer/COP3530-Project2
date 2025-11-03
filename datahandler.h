@@ -3,7 +3,7 @@
 
 #include "parse.h"
 #include "weightedTrie.h"
-#include "minHeap"
+#include "minHeap.h"
 
 
 // this exists to improve readability and data access within main
@@ -40,6 +40,7 @@ public:
         std::cout << "getCitySevereEvents successful. found city : " << CityState <<std::endl;
         return output;
     }
+
     //essential weightedTrie functions
     trieNode* trieSearch(const std::string& word) {
         return trie->trieSearch(word);
@@ -71,7 +72,7 @@ public:
     void printWeatherEventState(std::string state) {
         noaadata->printStateData(state);
     }
-    //essential minHeap functions
+    //essential minHeap.h functions
     void initHeap() {
         std::unordered_map<std::string, std::vector<NOAAData::weatherRecord>> eventMap = getWeatherEventMap();
         std::unordered_map<std::string, std::vector<NOAAData::weatherRecord>>::iterator it;
@@ -85,12 +86,18 @@ public:
     int heapSize() {
         return minheap->size();
     }
-    int getCityWeightInHeap(const string &cityName) {
+    int getCityWeightInHeap(const std::string &cityName) {
         return minheap->getWeight(cityName);
     }
     void printTopHeapNode() {
         auto min = minheap->getMin();
-        std::cout << min.cityName << " : " << min.weight;
+        std::cout << min.cityName << " : " << min.weight << std::endl;
+    }
+    void printTopNodes(int x) {
+        minheap->printTopX(x);
+    }
+    vector<Node> getTopMinHeap(int x) {
+        return minheap->getTop(x);
     }
 };
 

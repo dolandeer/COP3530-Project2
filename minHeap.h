@@ -139,6 +139,31 @@ public:
     bool empty() const {
         return heap.empty();
     }
+
+    vector<Node> getTop(int x){
+        int lastweight = 0;
+        vector<Node> output;
+        output.push_back(getMin());
+        lastweight = output[0].weight;
+        int pos = 0;
+        for (int i = 1; i < x; i++) {
+            for (int j = pos; j<size()-1; j++) {
+                if (heap[j].weight > lastweight) {
+                    lastweight = heap[j].weight;
+                    output.push_back(heap[j]);
+                    break;
+                }
+            }
+        }
+        return output;
+    }
+
+    void printTopX(int x) {
+        vector<Node> out = getTop(x);
+        for (auto i : out) {
+            std::cout << i.cityName << " : " << i.weight << std::endl;
+        }
+    }
 };
 
 #endif //COP3530_PROJECT2_MINHEAP_H

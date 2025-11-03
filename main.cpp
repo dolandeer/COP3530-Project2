@@ -37,7 +37,7 @@ int main() {
     dataHandler handler(noaaPtr,uscPtr,triePtr,heapPtr);
     //CODE BELOW:
 
-    std::string city = handler.autocomplete("orl", false);
+    std::string city = handler.autocomplete("soul");
     std::cout << city << std::endl;
 
 
@@ -48,6 +48,7 @@ int main() {
 
     std::cout << handler.heapSize() << std::endl;
     handler.printTopHeapNode();
+    handler.printTopNodes(10);
     //handler.printWeatherEventState("florida");
 
     //noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
