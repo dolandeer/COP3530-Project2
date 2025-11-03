@@ -15,7 +15,8 @@ using namespace std;
 // Each city and its weight
 struct Node {
     string cityName;
-    int weight; //weight (score) = distanceFrom78(F) + numSevereEvents(month) / numEvents(month)
+    int weight; //weight (score) = increment score by 1 every time a city has an event
+    // ignore cities with score 0 (cities missed during data collection)
 
     Node(string name, int w = 0) {
         cityName = name;

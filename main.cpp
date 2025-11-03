@@ -25,14 +25,30 @@ int main() {
     noaa.insertData(in);
     noaa.printData();
     */
+    //INITIALIZATION:
     weightedTrie testTrie;
     weightedTrie* triePtr = &testTrie;
     USCData usc(triePtr);
     USCData* uscPtr = &usc;
     NOAAData noaa(triePtr, uscPtr);
     NOAAData* noaaPtr = &noaa;
+    MinHeap heap;
+    MinHeap* heapPtr = &heap;
+    dataHandler handler(noaaPtr,uscPtr,triePtr,heapPtr);
+    //CODE BELOW:
 
-    dataHandler handler(noaaPtr,uscPtr,triePtr);
+    std::string city = handler.autocomplete("orl", false);
+    std::cout << city << std::endl;
+
+
+    auto vec = handler.getCitySevereEvents(city);
+    for (auto event : vec) {
+        std::cout << " {" << event.eventType << ", " << event.year << event.month << "} " << std::endl;
+    }
+
+    std::cout << handler.heapSize() << std::endl;
+    handler.printTopHeapNode();
+    //handler.printWeatherEventState("florida");
 
     //noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
 

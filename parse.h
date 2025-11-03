@@ -20,14 +20,13 @@ class JSONData {
 
 
 //USCities Parsing (use a for loop to ignore any unwanted data)
-// we only really need this database for converting city name -> lat/long for calling the API
-// and for weighted trie initialization
-// store data as a map: {key = "city/state" || values = [county, lat, long]}
-// for severe weather data, we can assume every city within a county experienced the same weather
-// storing city and state as key to avoid duplicate cities such as charleston SC and charleston WV
+// This database initializes both the trie as well as a map that links cities and counties together.
+// It also contains necessary latitude and longitude coordinates
+// store data as a map: {key = "city/state" || values = [county, lat, long]} to avoid duplicate city names
+// For NOAA data, we can assume every city within a county experienced the same weather
 class USCData {
     std::unordered_map<std::string, std::vector<std::string>> data; // {Orlando/Florida, <Orange,x,y,pop>}
-    std::unordered_map<std::string, std::vector<trieNode*>> countyMap; // Orange/Florida : Orlando, Kissimmee, etc
+    std::unordered_map<std::string, std::vector<trieNode*>> countyMap; // Orange/Florida : Orlando*, Kissimmee*, etc
     weightedTrie* trie = nullptr;
 
 public:
@@ -36,7 +35,10 @@ public:
     }
 
     //parses CSV
+    //CREDIT FOR BASE READCSV LOGIC:
+    //https://stackoverflow.com/questions/1120140/how-can-i-read-and-parse-csv-files-in-c
     std::vector<std::vector<std::string>> readCSV() {
+        int counter = 0;
         std::vector<std::vector<std::string>> output;
         std::ifstream CSVFile("data/simplemaps_uscities/uscities.csv");
         if (!CSVFile.is_open()) {
@@ -54,10 +56,12 @@ public:
                 count++;
                 if (count == 9) break;
             }
+            counter++;
             output.push_back(row);
         }
         CSVFile.close();
         insertData(output);
+        std::cout << "USCities found " << counter << " rows and added them to trie." << std::endl;
         return output;
     }
 
@@ -80,6 +84,7 @@ public:
                     count++;
                 }
             }
+            std::transform(key.begin(), key.end(), key.begin(), ::tolower);
             data[key] = value;
         }
     }
@@ -108,16 +113,16 @@ public:
     }
 
     void initTrie() {
-        //init trie with City/State as nodes, leaf node stores County/State
+        //init trie with City/State as nodes, leaf node stores City/State as string
         if (trie == nullptr) return;
         std::unordered_map<std::string, std::vector<std::string>>::iterator it;
         for (it = data.begin(); it != data.end(); it++) {
             std::string county = it->second[0];
             std::string cityState = it->first;
             std::string countyUpper = county;
-            std::transform(countyUpper.begin(), countyUpper.end(), countyUpper.begin(), ::toupper);
+            std::transform(countyUpper.begin(), countyUpper.end(), countyUpper.begin(), ::tolower);
             std::string stateUpper = cityState.substr(cityState.find("/") + 1);
-            std::transform(stateUpper.begin(), stateUpper.end(), stateUpper.begin(), ::toupper);
+            std::transform(stateUpper.begin(), stateUpper.end(), stateUpper.begin(), ::tolower);
             std::string key = countyUpper + "/" + stateUpper;
             trieNode* curr = trie->insertWord(cityState);
             countyMap[key].push_back(curr);
@@ -151,6 +156,7 @@ public:
 //NOAA Parsing (treating ',,' as end of row and ignoring all data after)
 class NOAAData {
 public:
+    //one weatherRecord is one event
     struct weatherRecord {
         std::string eventType;
         int year = -1;
@@ -158,7 +164,7 @@ public:
     };
 
 private:
-    std::unordered_map<std::string, std::vector<weatherRecord>> data;  // {key = "cityname/state" || values = vector<[weather type, year, month]>}
+    std::unordered_map<std::string, std::vector<weatherRecord>> data;  // {key = "cityname/state" || values = vector<weatherRecord>}
     weightedTrie* trie = nullptr;
     USCData* uscData = nullptr;
 
@@ -176,6 +182,9 @@ public:
 
     //HELPER FUNCTIONS
     weightedTrie* getTrie() const {return this->trie;}
+    std::unordered_map<std::string, std::vector<weatherRecord>> getWeatherEventMap() {
+        return this->data;
+    }
 
 
     //MAIN FUNCTIONS
@@ -186,9 +195,11 @@ public:
     //cz_name at col 16 : string (NEEDS TO BE SIMPLFIED) done
     //STATE at col 9 : string
     //read only important cells!!
+    //CREDIT FOR BASE READCSV LOGIC:
+    //https://stackoverflow.com/questions/1120140/how-can-i-read-and-parse-csv-files-in-c
     void readCSV(const std::string& filename) {
+        int counter = 0;
         int column = 0;
-        std::vector<std::vector<std::string>> output;
         std::ifstream CSVFile("data/noaa_database/" + filename);
         if (!CSVFile.is_open()) {
             std::cerr << "Unable to open file: " << filename << std::endl;
@@ -228,15 +239,18 @@ public:
 
             std::string fixedCZ = fixNOAAczName(czName);
             std::string CountyState = fixedCZ + "/" + state;
+            std::transform(CountyState.begin(), CountyState.end(), CountyState.begin(), ::tolower);
+
             auto cityNodesMap = uscData->getCountyMap(CountyState);
+
+            /* DEBUG
+            std::cout << "Raw CZ: " << czName << " | Fixed CZ: " << fixedCZ
+          << " | State: " << state
+          << " | CountyState key: " << CountyState
+          << " | cityNodesMap size: " << cityNodesMap.size() << std::endl;
+          */
             if (cityNodesMap.empty()) continue; // skip if not found in county map
 
-
-
-            if (yearMonth.empty() || yearMonth.length() < 6) {
-                std::cerr << "INVALID YEARMONTH: " << yearMonth << std::endl;
-                continue;
-            }
             int year = std::stoi(yearMonth.substr(0, 4));
             int month = std::stoi(yearMonth.substr(4, 2));
             weatherRecord curr;
@@ -244,13 +258,16 @@ public:
             curr.month = month;
             curr.year = year;
             for (trieNode* cityNode : cityNodesMap) {
+                counter++;
                 std::string cityState = cityNode->getCityState();
                 data[cityState].push_back(curr);
             }
         }
+        std::cout << "NOAAData readCSV made " << counter << " connections in a file." << std::endl;
         CSVFile.close();
     }
 
+    // prints the entire data map for verification of storage
     void printAllData() {
         std::unordered_map<std::string, std::vector<weatherRecord>>::iterator it;
         int counter = 0;
@@ -269,6 +286,26 @@ public:
         std::cout << counter << std::endl;
     }
 
+    void printStateData(std::string state) {
+        std::unordered_map<std::string, std::vector<weatherRecord>>::iterator it;
+        std::transform(state.begin(), state.end(), state.begin(), ::tolower);
+        for (it = data.begin(); it != data.end(); it++)
+        {
+            if (it->first.find("/" + state) != std::string::npos) {
+                std::cout << it->first    // string (key)
+                          << " : ";
+            }
+            for (auto weatherRecord  : it->second) { // data within the struct
+                if (it->first.find("/" + state) != std::string::npos) {
+                    std::cout << "{";
+                    std::cout << weatherRecord.eventType << ", " << weatherRecord.month << ", " << weatherRecord.year;
+                    std::cout << "} ";
+                }
+            }
+            if (it->first.find("/" + state) != std::string::npos) std::cout << std::endl;
+        }
+    }
+
     std::vector<weatherRecord> getCountySevereEvents(std::string CountyState) {
         auto it = data.find(CountyState);
         if (it != data.end()) return it->second;
@@ -276,6 +313,7 @@ public:
     }
 
 
+    //iteratively reads all data within the noaa_database folder
     void readAllCSV() {
         std::string filepath = "data/noaa_database/";
         std::vector<std::string> csvFiles;
@@ -287,9 +325,15 @@ public:
     }
 
 
-    std::string fixNOAAczName(std::string rawName) { // cz name is almost always in the wrong format,
-        //this should look at all of the possible prefixes and suffixes to remove them
-        std::transform(rawName.begin(), rawName.end(), rawName.begin(), ::toupper); // we like uppercase for uniformity
+    //CREDIT FOR LOGIC:
+    //https://stackoverflow.com/questions/67242068/how-to-remove-a-prefix-or-a-suffix-from-a-string-in-c
+    //the following function tackles by far the biggest issue we faced with the dataset, we
+    //have non-normalized county names and we need to map them to a preexisting county in the trie.
+    // while its not close to perfect at all, the current version removes one suffix and prefix
+    // and also ignores any coastal regions that do not map to a real county
+    // after this we are seeing ~ 30k connections made per file (good enough for the purposes of the project)
+    std::string fixNOAAczName(std::string rawName) { // cz name is almost always in the wrong format
+        std::transform(rawName.begin(), rawName.end(), rawName.begin(), ::toupper); // NOAA likes uppercase
         //remove coastal areas
         if (rawName.find("GULF") != std::string::npos || rawName.find("BAY") != std::string::npos || rawName.find("OUT ") != std::string::npos) return "";
         // all of the prefixes I could find
@@ -312,6 +356,7 @@ public:
                 break;
             }
         }
+        std::transform(rawName.begin(), rawName.end(), rawName.begin(), ::tolower);
         return rawName;
     }
 };
