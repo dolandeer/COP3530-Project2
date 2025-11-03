@@ -9,13 +9,17 @@ class trieNode {
 private:
     int weight = 0;
     char letter = '\0';
+    std::string CityState;
+    std::string CountyState;
+    //make each leaf node store the county of the city
+    //every time a county appears increment each city in the county by 1
 
 public:
-    trieNode* children[27]; //0-25 are alphabetical, 26 is space
+    trieNode* children[28]; //0-25 are alphabetical, 26 is space
     bool isLeaf = false;
     //constructor
     trieNode() {
-        for (int i = 0; i<27; i++) {
+        for (int i = 0; i<28; i++) {
             children[i] = nullptr;
         }
     }
@@ -30,8 +34,20 @@ public:
     int getWeight() const {return this->weight;}
     int getNumChildren() {
         int counter = 0;
-        for (int i = 0; i<27; i++) {if (this->children[i] != nullptr) counter++;}
+        for (int i = 0; i<28; i++) {if (this->children[i] != nullptr) counter++;}
         return counter;
+    }
+    std::string getCity() {
+        return this->CityState;
+    }
+    std::string getCounty() {
+        return this->CountyState;
+    }
+    void setCity(std::string word) {
+        this->CityState = word;
+    }
+    void setCounty(std::string word) {
+        this->CountyState = word;
     }
     //modifier functions
     void increaseWeight() {this->weight++;}
@@ -48,6 +64,7 @@ the second option may be more efficient, im not sure if it will work
 keywords ive noticed: coastal, inland, western/eastern/northern/southern
 some of the data also uses a region or landmark instead of a county, we can ignore those as they are
 usually duplicates and would not match up to any city
+^^^ to ignore, if compareCity fails then simply do not insert the data anywhere
 */
 class weightedTrie {
 private:
@@ -65,7 +82,7 @@ public:
     //functions
     void deleteRecursive(trieNode* node) {
         if (node != nullptr) {
-            for (int i = 0; i < 27; ++i) {
+            for (int i = 0; i < 28; ++i) {
                 if (node->children[i] != nullptr) {
                     deleteRecursive(node->children[i]);
                     node->children[i] = nullptr;
@@ -76,13 +93,13 @@ public:
     }
 
 
-    void insertWord(trieNode* root, const std::string& word) {
+    trieNode* insertWord(trieNode* root, const std::string& word) {
         trieNode* current = root;
         current->increaseWeight(); // the root will hold the number of words present within the trie
         for (char letter : word) {
-            if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';} // 'A' = 'a'
-            int index = letter - 'a';
-            if (letter == ' ') index = 26;
+            int index = indexLetter(letter);
+            if (index == -1) continue;
+            if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';}
             if (current->children[index] == nullptr) {
                 trieNode* newNode = new trieNode(letter);
                 current->children[index] = newNode;
@@ -90,36 +107,39 @@ public:
             current = current->children[index];
             current->increaseWeight();
         }
+        current->setCity(word);
         current->isLeaf = true; // if a node is marked as isLeaf, that means that it is the end of a word
+        return current;
     }
 
+    void setCounty(trieNode* node, std::string word) {
+        node->setCounty(word);
+    }
 
-
-    bool trieSearch(trieNode* root, const std::string& word) {
+    trieNode* trieSearch(trieNode* root, const std::string& word) {
         trieNode* current = root;
         for (char letter : word) {
-            if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';} // 'A' = 'a'
-            if (current->children[letter - 'a'] == nullptr && letter!=' '){return false;} // does not exist
-            int index = letter - 'a';
-            if (letter == ' ') index = 26;
+            int index = indexLetter(letter);
+            if (index == -1) continue;
             //DEBUG:
-            std::cout << "WEIGHT OF " << current->getLetter() << ":" << current->getWeight() << std::endl;
+            //std::cout << "WEIGHT OF " << current->getLetter() << ":" << current->getWeight() << std::endl;
             //
+            if (current->children[index] == nullptr) return nullptr;
             current = current->children[index]; // does exist, continue down
         }
         //DEBUG:
-        std::cout << "WEIGHT OF " << current->getLetter() << ":" << current->getWeight() << std::endl;
+        //std::cout << "WEIGHT OF " << current->getLetter() << ":" << current->getWeight() << std::endl;
         //
-        return current->isLeaf;
+        if (current->isLeaf) return current;
+        return nullptr;
     }
 
     std::string autocomplete(trieNode* root, const std::string& word, bool inverse) { // autocompletes
         trieNode* current = root;
         std::string output;
         for (char letter : word) {
-            if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';} // 'A' = 'a'
-            int index = letter - 'a';
-            if (letter == ' ') index = 26;
+            int index = indexLetter(letter);
+            if (index == -1) continue;
             if (current->children[index] == nullptr){return "";} // does not exist
             current = current->children[index]; // does exist, continue down
             output += letter;
@@ -128,7 +148,7 @@ public:
         while (!current->isLeaf) {
             if (current->getNumChildren() == 0) return output;
             trieNode* target = nullptr;
-            for (int i = 0; i<27; i++) {
+            for (int i = 0; i<28; i++) {
                 if (current->children[i] != nullptr) {
                     if (target==nullptr) target = current->children[i];
                     if (!inverse&&current->children[i]->getWeight() > target->getWeight()) target = current->children[i]; //prioritize HIGHER
@@ -142,12 +162,12 @@ public:
     }
 
     // WRAPPERS
-    void insertWord(const std::string& word) {
+    trieNode* insertWord(const std::string& word) {
         trieNode* root = this->getRoot();
-        insertWord(root, word);
+        return insertWord(root, word);
     }
 
-    bool trieSearch(const std::string& word) {
+    trieNode* trieSearch(const std::string& word) {
         trieNode* root = this->getRoot();
         return trieSearch(root, word);
     }
@@ -159,4 +179,12 @@ public:
     // HELPERS
     int numWords() {return this->getRoot()->getWeight();}
     trieNode* getRoot() {return this->root;}
+
+    int indexLetter(char letter) { //narrowing conversion from capital to lowercase
+        if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';}
+        if (letter == ' ') return 26;
+        if (letter == '/') return 27;
+        if (letter >= 'a' && letter <= 'z') return letter - 'a';
+        return -1;
+    }
 };

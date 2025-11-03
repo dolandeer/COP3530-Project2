@@ -21,54 +21,101 @@ private:
 
 
     // because of how many files we have, each file will be its own structure
-    struct file {
-        std::map<std::string, std::vector<std::string>> fileData;
-        // {key = "simplified_cz_name/state" || values = [weather type, month]}
-        // find simplified cz name on input, compare against already initialized trie
-        // read uscities -> init trie -> read NOAAData (compare against trie for name) -> store NOAAData in min/max heap
-        // api c
+    struct weatherRecord {
+        std::string eventType;
+        int year;
+        int month;
     };
 
-    std::vector<file> data;  // file<{key = "simplified_cz_name/state" || values = [weather type, month]}>
+    std::unordered_map<std::string, std::vector<weatherRecord>> data;  // file<{key = "simplified_cz_name/state" || values = [weather type, month, year]}>
     weightedTrie* trie = nullptr;
 
 
 
 public:
-    void printData() const { // TODO helper function that prints data to console by row, should mirror database
+    //CONSTRUCTORS AND DESTRUCTORS
+    NOAAData() {
+        std::cerr << "NOAAData initialized without a weighted trie!! Was this intentional?" << std::endl;
+    }
+    NOAAData(weightedTrie* inputTrie) {
+        this->trie = inputTrie;
     }
 
+    //HELPER FUNCTIONS
+    weightedTrie* getTrie() const {return this->trie;}
 
 
+    //MAIN FUNCTIONS
 
-
-    // parse a single CSV file TODO redo this, dont insert data automatically, make an insertData function
-    std::vector<std::vector<std::string>> readCSV(const std::string& filename) {
+    // parse a single CSV file, return format row<col<cell>>
+    //END_YEARMONTH at col 4 : int (format "200012" = December of 2000)
+    //event type at col 13 : string
+    //cz_name at col 16 : string (NEEDS TO BE SIMPLFIED)
+    //STATE at col 9 : string
+    //read only important cells!!
+    void readCSV(const std::string& filename) {
+        int column = 0;
         std::vector<std::vector<std::string>> output;
         std::ifstream CSVFile("data/noaa_database/" + filename);
         if (!CSVFile.is_open()) {
             std::cerr << "Unable to open file: " << filename << std::endl;
-            return output;
+            return;
         }
         std::string line;
         while (std::getline(CSVFile, line)) {
+            //row
+            column = 0;
             auto pos = line.find(",,");
             line = line.substr(0, pos); // ignore all data after ,,
-            std::vector<std::string> row;
             std::stringstream ss(line);
             std::string cell;
+
+            std::string yearMonth;
+            std::string state;
+            std::string eventType;
+            std::string czName;
+
             while (std::getline(ss, cell, ',')) {
-                row.push_back(cell);
+                column++;
+                //column
+                if (cell[0] == '"') { // removal of quotations
+                    cell.replace(cell.begin(),cell.begin()+1,"");
+                    cell.replace(cell.end()-1,cell.end(),"");
+                }
+                if (column == 4) yearMonth = cell;
+                if (column == 9) state = cell;
+                if (column == 13) eventType = cell;
+                if (column == 16) czName = cell;
             }
-            output.push_back(row);
+            std::string city = compareCity(czName + "/" + state);
+            if (city.empty()) continue; // skip if not found in trie
+            int year = std::stoi(yearMonth.substr(0, 4));
+            int month = std::stoi(yearMonth.substr(4, 2));
+            weatherRecord curr;
+            curr.eventType = eventType;
+            curr.month = month;
+            curr.year = year;
+            data[city].push_back(curr);
         }
         CSVFile.close();
-        return output;
     }
 
-    void insertData(){} //TODO this will insert info into data, make sure to compare against trie here
+    std::string compareCity(std::string cityName) { // CSV->Trie comparison function
+        if (this->trie == nullptr) {
+            std::cerr << "compareCity failed" << std::endl;
+            return "";
+        }
 
-    void getData(){} //TODO
+        if (trie->trieSearch(cityName)) return cityName;
+        cityName=cityName.substr(cityName.find_first_of(" \t")+1); //remove prefix
+        if (trie->trieSearch(cityName)) return cityName;
+
+        //failed for some reason
+        std::cerr << "compareCity failed" << std::endl;
+        return "";
+    }
+
+    void getData(){} //TODO will return data from the map
 
 };
 
@@ -81,9 +128,15 @@ public:
 // for severe weather data, we can assume every city within a county experienced the same weather
 // storing city and state as key to avoid duplicate cities such as charleston SC and charleston WV
 class USCData {
-    std::map<std::string, std::vector<std::string>> data; // {Orlando/Florida, <Orange,x,y,pop>}
+    std::unordered_map<std::string, std::vector<std::string>> data; // {Orlando/Florida, <Orange,x,y,pop>}
+    std::unordered_map<std::string, std::vector<trieNode*>> countyMap;
+    weightedTrie* trie = nullptr;
 
 public:
+    USCData(weightedTrie* inputTrie) {
+        trie = inputTrie;
+    }
+
     //parses CSV
     std::vector<std::vector<std::string>> readCSV() {
         std::vector<std::vector<std::string>> output;
@@ -92,8 +145,6 @@ public:
             std::cerr << "Unable to open file" << std::endl;
             return output;
         }
-
-
         std::string line;
         while (std::getline(CSVFile, line)) {
             std::vector<std::string> row;
@@ -108,15 +159,15 @@ public:
             output.push_back(row);
         }
         CSVFile.close();
-        //insertData(output);
+        insertData(output);
         return output;
     }
 
     //inserts output of readCSV into data
-    void insertData(std::vector<std::vector<std::string>> input) {
-        for (auto row : input) {
+    void insertData(const std::vector<std::vector<std::string>>& input) {
+        for (const auto& row : input) {
             int count = 0;
-            std::string key = "";
+            std::string key;
             std::vector<std::string> value;
             for (auto cell : row) {
                 cell.replace(cell.begin(),cell.begin()+1,"");
@@ -137,18 +188,50 @@ public:
 
     //iterates data to verify its stored properly
     void iterateMap() { // helper function to ensure data is formatted correctly
-        std::map<std::string, std::vector<std::string>>::iterator it;
-
+        std::unordered_map<std::string, std::vector<std::string>>::iterator it;
         for (it = data.begin(); it != data.end(); it++)
         {
             std::cout << it->first    // string (key)
                       << " : ";
-            for (auto i : it->second) {
+            for (const auto& i : it->second) {
                 std::cout << i << ", ";
+            }
+            std::cout << std::endl;
+        }
+        for (auto it1 = countyMap.begin(); it1 != countyMap.end(); it1++)
+        {
+            std::cout << it1->first    // string (key)
+                      << " : ";
+            for (const auto& i : it1->second) {
+                std::cout << i->getCity() << ", ";
             }
             std::cout << std::endl;
         }
     }
 
-    //TODO need getData function, map<string, vector<string>> is the format
+    void initTrie() {
+        //init trie with City/State as nodes, leaf node stores County/State
+        if (trie == nullptr) return;
+        std::unordered_map<std::string, std::vector<std::string>>::iterator it;
+        for (it = data.begin(); it != data.end(); it++) {
+            trieNode* current = trie->insertWord(it->first);
+            std::string county = it->second[0];
+            std::string key = county + "/" + it->first.substr(it->first.find("/") + 1);
+            countyMap[key].push_back(trie->trieSearch(it->first));
+            current->setCounty(key);
+        }
+        //init map with {County/State, vector<trieNode* city> cities}
+    }
+
+
+    //TODO need getData function, map<string, vector<string>> is the format of data
+    //getData will return either City/State or County/State
+    std::map<std::string, std::vector<std::string>> getData(int type) {
+        if (type == 1) {
+
+        }
+        else if (type == 2) {
+
+        }
+    }
 };

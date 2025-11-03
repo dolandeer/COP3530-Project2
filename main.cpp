@@ -8,11 +8,12 @@ int main() {
     std::cout << "Hello, World!" << std::endl;
     // example API call. max of 10,000 calls a day for open-meteo so call as needed do not loop!
 
+    /*
     cpr::Response r = cpr::Get(cpr::Url{"https://api.open-meteo.com/v1/forecast?latitude=29.6516&longitude=-82.3248&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code&current=temperature_2m,weather_code&timezone=America%2FNew_York&past_days=5&forecast_days=1&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch"});
     std::cout << r.status_code << std::endl;                  // 200
     std::cout << r.header["content-type"] << std::endl;       // application/json; charset=utf-8
     std::cout << r.text;                         // JSON text string
-
+    */
 
     //TEST
 
@@ -23,22 +24,22 @@ int main() {
     noaa.insertData(in);
     noaa.printData();
     */
-
-    USCData usc;
-    usc.readCSV();
-    usc.iterateMap();
-
     weightedTrie testTrie;
-    testTrie.insertWord("abcd efg");
-    testTrie.insertWord("abcd efghij");
-    testTrie.insertWord("abcd efghijk");
-    testTrie.insertWord("abcd efghi");
-    testTrie.insertWord("abcd efghl");
-    testTrie.insertWord("ab cdefg");
-    testTrie.insertWord("aaaaaaaaaa");
-    std::cout << testTrie.trieSearch("aaaaaaaaaa") << std::endl;
-    std::cout << testTrie.autocomplete("abcd efgh") << std::endl;
-    std::cout << testTrie.autocomplete("aa") << std::endl;
+    weightedTrie* triePtr = &testTrie;
+
+    USCData usc(triePtr);
+    usc.readCSV();
+    usc.initTrie();
+
+
+
+    std::cout << testTrie.autocomplete("orlando/") << std::endl;
+    NOAAData noaa(triePtr);
+    noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
+    std::cout << noaa.compareCity("downtown Orlando/Florida") << std::endl; // returns "Orlando/Florida" true
+    std::cout << testTrie.trieSearch("ORLANDO/Florida")->getCounty();
+
+    //noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
 
     //std::cout << testTrie.trieSearch("TEST T");
 }
