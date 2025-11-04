@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stay Dry — Weather Context</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <nav class="topnav container">
+    <div class="brand">Stay Dry</div>
+    <ul>
+      <li><a class="active" href="#">Search</a></li>
+      <li><a href="#">Compare</a></li>
+      <li><a href="#">About</a></li>
+    </ul>
+  </nav>
+
+  <section class="container card search-card">
+    <label for="q" class="label">Search city or state</label>
+    <div class="row">
+      <div class="pill">
+        <input id="q" type="text" placeholder="e.g., Miami, FL" autocomplete="off">
+        <ul id="suggestions" class="suggestions"></ul>
+      </div>
+      <select id="month" class="pill-select">
+        <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+        <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+        <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+        <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+      </select>
+      <button id="searchBtn" class="pill-btn">Search</button>
+    </div>
+    <div class="row-options">
+      <label><input type="checkbox" id="mockToggle" checked> Use mock data</label>
+    </div>
+    <div id="status" class="status" aria-live="polite"></div>
+  </section>
+
+  <main class="container layout">
+    <section class="card col-main">
+      <h2>Results</h2>
+      <div id="results" class="grid"></div>
+      <div id="chartArea" class="chart-placeholder"></div>
+    </section>
+
+    <aside class="card col-side">
+      <h2>Ranked list (best weather this month)</h2>
+      <ol id="ranking" class="ranking"></ol>
+    </aside>
+  </main>
+
+  <footer class="container foot">
+    <small>Set <code>API_BASE</code> in <code>app.js</code> when backend is ready.</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

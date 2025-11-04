@@ -1,0 +1,26 @@
+{
+  "autocomplete": [
+    {"label": "Gainesville, FL"},
+    {"label": "Miami, FL"},
+    {"label": "San Diego, CA"}
+  ],
+  "search": {
+    "Miami, FL": {
+      "results": [
+        {
+          "place": "Miami, FL",
+          "month": "October",
+          "avg_temp": 27,
+          "current_temp": 28,
+          "storm_events": 2,
+          "deviation": "+1 °C",
+          "history": [24, 25, 25, 26, 27, 27, 28, 29, 28, 27, 26, 27]
+        }
+      ],
+      "ranking": [
+        {"place": "San Diego, CA", "score": 90},
+        {"place": "Miami, FL", "score": 86}
+      ]
+    }
+  }
+}
