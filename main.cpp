@@ -3,7 +3,17 @@
 #include "crow_all.h"
 #include "parse.h"
 #include "datahandler.h"
+#include <fstream>
+#include <sstream>
 
+
+//https://www.geeksforgeeks.org/cpp/inline-functions-cpp/
+inline std::string load_file(const std::string& filename) {
+    std::ifstream file(filename);
+    std::stringstream out;
+    out << file.rdbuf();
+    return out.str();
+}
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
@@ -18,40 +28,64 @@ int main() {
 
     //TEST
 
-    //example of parsing NOAA file, will be streamlined in the future
-    /*
-    NOAAData noaa;
-    std::vector<std::vector<std::string>> in = noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
-    noaa.insertData(in);
-    noaa.printData();
-    */
     //INITIALIZATION:
     weightedTrie testTrie;
-    weightedTrie* triePtr = &testTrie;
-    USCData usc(triePtr);
-    USCData* uscPtr = &usc;
-    NOAAData noaa(triePtr, uscPtr);
-    NOAAData* noaaPtr = &noaa;
+    USCData usc(&testTrie);
+    NOAAData noaa(&testTrie, &usc);
     MinHeap heap;
-    MinHeap* heapPtr = &heap;
-    dataHandler handler(noaaPtr,uscPtr,triePtr,heapPtr);
+    JSONData json;
+    dataHandler handler(&noaa,&usc,&testTrie,&heap,&json);
     //CODE BELOW:
 
-    std::string city = handler.autocomplete("soul");
-    std::cout << city << std::endl;
+    std::string jsonOutput = handler.frontendSearch(handler, "miami/florida", 10);
+    std::cout << jsonOutput << std::endl;
 
+    //https://crowcpp.org/master/getting_started/a_simple_webpage/
+    //https://crowcpp.org/master/guides/templating/
+    crow::SimpleApp app;
 
-    auto vec = handler.getCitySevereEvents(city);
-    for (auto event : vec) {
-        std::cout << " {" << event.eventType << ", " << event.year << event.month << "} " << std::endl;
+    CROW_ROUTE(app, "/")([]{
+        return load_file("index.html");
+     });
+    CROW_ROUTE(app,"/app.js")([] {
+        return load_file("app.js");
+    });
+    CROW_ROUTE(app,"/styles.css")([] {
+        return load_file("styles.css");
+    });
+
+    CROW_ROUTE(app, "/api/autocomplete")([&handler](const crow::request& req){
+    auto term = req.url_params.get("q");
+    std::vector<std::string> suggestions;
+    if(term) {
+        suggestions = {handler.autocomplete(term,false),handler.autocomplete(term,true)};
+        if (!suggestions.empty()) {
+            if (suggestions[0] == suggestions[1]) suggestions.pop_back();
+        }
     }
+        crow::json::wvalue result = crow::json::wvalue::list(); // make it a JSON array
+        for(size_t i = 0; i < suggestions.size(); i++) {
+                result[i]["label"] = suggestions[i];
+        }
+        crow::response response(result);
+        response.add_header("Access-Control-Allow-Origin", "*");
+        return response;
+    });
 
-    std::cout << handler.heapSize() << std::endl;
-    handler.printTopHeapNode();
-    handler.printTopNodes(10);
-    //handler.printWeatherEventState("florida");
+    CROW_ROUTE(app, "/api/search")([&handler](const crow::request& req){
+        auto place = req.url_params.get("place");
+        auto month = req.url_params.get("month");
+        crow::json::wvalue result;
+        std::string jsonData;
+        if(place && month) {
+            jsonData = handler.frontendSearch(handler, place, int(*month));
+            result = crow::json::load(jsonData);
+        }
+        std::cout << "SEARCH CALLED: " << jsonData << std::endl;
+        crow::response response(result);
+        response.add_header("Access-Control-Allow-Origin", "*");
+        return response;
+    });
 
-    //noaa.readCSV("StormEvents_details-ftp_v1.0_d2000_c20250520.csv");
-
-    //std::cout << testTrie.trieSearch("TEST T");
+    app.port(1337).multithreaded().run();
 }

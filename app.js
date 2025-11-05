@@ -1,5 +1,5 @@
-const API_BASE = null;
-const USE_MOCK_DEFAULT = true;
+const API_BASE = "http://localhost:1337";
+const USE_MOCK_DEFAULT = false;
 
 const els = {
   q: document.getElementById('q'),
@@ -136,17 +136,16 @@ function renderResults(data) {
     card.innerHTML = `
       <h3>${it.place} <span class="badge">${it.month}</span></h3>
       <div class="kv">
-        <div><strong>Avg Temp</strong><br>${it.avg_temp} °C</div>
-        <div><strong>Current</strong><br>${it.current_temp} °C</div>
-        <div><strong>Storm Events</strong><br>${it.storm_events}</div>
-        <div><strong>Abnormality</strong><br>${it.deviation ?? "-"}</div>
+        <div><strong>7 Day Avg.</strong><br>${it.avg_temp} °F</div>
+        <div><strong>Current Temp.</strong><br>${it.current_temp} °F</div>
+        <div><strong>Storm Events in Month</strong><br>${it.storm_events}</div>
+        <div><strong>Temp. Abnormality</strong><br>${it.deviation ?? "-"}</div>
       </div>
       <div class="chart-placeholder" id="chartArea"></div>
     `;
     els.results.appendChild(card);
     renderChart(it.history);
   });
-
   removeOrphanPlaceholders();
 }
 
@@ -195,7 +194,7 @@ function displayData(data) {
 }
 
 function init() {
-  els.mockToggle.checked = USE_MOCK_DEFAULT || !API_BASE;
+  els.mockToggle.checked = false;
 
   els.q.addEventListener('input', debounce(onType, 200));
   els.q.addEventListener('focus', () => { if (els.q.value.trim()) onType(); });

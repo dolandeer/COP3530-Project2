@@ -7,13 +7,41 @@
 #include <unordered_map>
 #include "weightedTrie.h"
 #include <filesystem>
+#include <regex>
 
 #include "parse.h"
 
 //JSON Parsing (getting data from the API)
 //TODO json parsing for api calls
 class JSONData {
-
+public:
+    JSONData() = default;
+    float parseCurrentTemperature(std::string json) {
+        float out = 0;
+        std::smatch match;
+        std::regex tempRegex(R"("temperature_2m":([0-9\.]+))");
+        if (std::regex_search(json, match, tempRegex)) {
+            out = std::stof(match[1]);
+        }
+        return out;
+    }
+    std::vector<float> parseWeeklyTemperature(std::string json) {
+        std::vector<float> out = {0,0,0,0,0,0,0};
+        std::smatch match;
+        std::regex tempRegex(R"("temperature_2m_max":\[([^\]]+)\])");
+        if (std::regex_search(json, match, tempRegex)) {
+            std::stringstream ss(match[1]);
+            std::string value;
+            int count = 0;
+            while (std::getline(ss, value, ',')) {
+                float temp = std::stof(value);
+                out[count] = temp;
+                count++;
+            }
+            out.pop_back();
+        }
+        return out;
+    }
 };
 
 //TODO update all comments to reflect what is actually happening, many are completely incorrect at this point
@@ -149,6 +177,15 @@ public:
             }
         }
         return "";
+    }
+
+    std::pair<float,float> getCityCoords(std::string place) {
+        std::pair<float,float> out = {0,0};
+        if (data.find(place) != data.end()) {
+            out.first = std::stof(data.find(place)->second[1]);
+            out.second = std::stof(data.find(place)->second[2]);
+        }
+        return out;
     }
 
 };
