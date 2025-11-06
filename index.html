@@ -12,8 +12,6 @@
     <div class="brand">Stay Dry</div>
     <ul>
       <li><a class="active" href="#">Search</a></li>
-      <li><a href="#">Compare</a></li>
-      <li><a href="#">About</a></li>
     </ul>
   </nav>
 
@@ -21,7 +19,7 @@
     <label for="q" class="label">Search city or state</label>
     <div class="row">
       <div class="pill">
-        <input id="q" type="text" placeholder="e.g., Miami, FL" autocomplete="off">
+        <input id="q" type="text" placeholder="e.g., Miami, Florida" autocomplete="off">
         <ul id="suggestions" class="suggestions"></ul>
       </div>
       <select id="month" class="pill-select">
@@ -46,13 +44,13 @@
     </section>
 
     <aside class="card col-side">
-      <h2>Ranked list (best weather this month)</h2>
+      <h2>Ranked list (Best Weather from Dataset)</h2>
       <ol id="ranking" class="ranking"></ol>
     </aside>
   </main>
 
   <footer class="container foot">
-    <small>Set <code>API_BASE</code> in <code>app.js</code> when backend is ready.</small>
+    <small>Credit to open-meteo for API data and USCities for city database.</small>
   </footer>
 
   <script src="app.js"></script>

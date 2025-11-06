@@ -23,7 +23,7 @@ public:
         }
     }
     trieNode(char key) {
-        for (int i = 0; i<27; i++) {
+        for (int i = 0; i<28; i++) {
             children[i] = nullptr;
         }
         this->letter = key;
@@ -71,7 +71,7 @@ public:
     weightedTrie() = default;
     ~weightedTrie() {
         deleteRecursive(this->root);
-        //this->root = nullptr;
+        this->root = nullptr;
     }; // destructor
 
     //functions
@@ -83,7 +83,6 @@ public:
                     node->children[i] = nullptr;
                 }
             }
-            if (node != root) delete (node);
         }
     }
 
@@ -92,9 +91,9 @@ public:
         trieNode* current = root;
         current->increaseWeight(); // the root will hold the number of words present within the trie
         for (char letter : word) {
+            if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';}
             int index = indexLetter(letter);
             if (index == -1) continue;
-            if (letter >= 'A' && letter <= 'Z'){letter = letter - 'A' + 'a';}
             if (current->children[index] == nullptr) {
                 trieNode* newNode = new trieNode(letter);
                 current->children[index] = newNode;

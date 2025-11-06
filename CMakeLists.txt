@@ -3,13 +3,13 @@ project(COP3530-Project2)
 
 set(CMAKE_CXX_STANDARD 17) # using c++17 for this project
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_definitions(-DASIO_STANDALONE) # use asio standalone
 
 add_executable(COP3530-Project2 main.cpp
         crow_all.h
         parse.h
-        distance.h
         weightedTrie.h
         datahandler.h
         minHeap.h)

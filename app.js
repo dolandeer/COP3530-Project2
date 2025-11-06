@@ -1,5 +1,5 @@
-const API_BASE = null;
-const USE_MOCK_DEFAULT = true;
+const API_BASE = "http://localhost:1337";
+const USE_MOCK_DEFAULT = false;
 
 const els = {
   q: document.getElementById('q'),
@@ -134,19 +134,18 @@ function renderResults(data) {
     const card = document.createElement('div');
     card.className = 'tile';
     card.innerHTML = `
-      <h3>${it.place} <span class="badge">${it.month}</span></h3>
+      <h3>${it.place}</span></h3>
       <div class="kv">
-        <div><strong>Avg Temp</strong><br>${it.avg_temp} °C</div>
-        <div><strong>Current</strong><br>${it.current_temp} °C</div>
-        <div><strong>Storm Events</strong><br>${it.storm_events}</div>
-        <div><strong>Abnormality</strong><br>${it.deviation ?? "-"}</div>
+        <div><strong>7 Day Avg.</strong><br>${it.avg_temp} °F</div>
+        <div><strong>Current Temp.</strong><br>${it.current_temp} °F</div>
+        <div><strong>Storm Events in Month</strong><br>${it.storm_events}</div>
+        <div><strong>Temp. Abnormality</strong><br>${it.deviation ?? "-"}</div>
       </div>
       <div class="chart-placeholder" id="chartArea"></div>
     `;
     els.results.appendChild(card);
     renderChart(it.history);
   });
-
   removeOrphanPlaceholders();
 }
 
@@ -174,7 +173,7 @@ function renderChart(history = []) {
   const max = Math.max(...history);
   const posX = i => leftPad + i * ((W - leftPad - rightPad) / (history.length - 1));
   const posY = v => topPad + (H - topPad - bottomPad) * (1 - (v - min) / (max - min || 1));
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months = ["-7","-6","-5","-4","-3","-2","-1","Today"];
 
   const pts = history.map((v, i) => `${posX(i)},${posY(v)}`).join(' ');
   const svg = `
@@ -195,7 +194,7 @@ function displayData(data) {
 }
 
 function init() {
-  els.mockToggle.checked = USE_MOCK_DEFAULT || !API_BASE;
+  els.mockToggle.checked = false;
 
   els.q.addEventListener('input', debounce(onType, 200));
   els.q.addEventListener('focus', () => { if (els.q.value.trim()) onType(); });
