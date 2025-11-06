@@ -42,19 +42,20 @@ int main() {
 
     //https://crowcpp.org/master/getting_started/a_simple_webpage/
     //https://crowcpp.org/master/guides/templating/
-    crow::SimpleApp app;
 
-    CROW_ROUTE(app, "/")([]{
+    crow::SimpleApp app; //webserver
+
+    CROW_ROUTE(app, "/")([]{ //the "homepage"
         return load_file("index.html");
      });
-    CROW_ROUTE(app,"/app.js")([] {
+    CROW_ROUTE(app,"/app.js")([] { //the backend of the frontend
         return load_file("app.js");
     });
-    CROW_ROUTE(app,"/styles.css")([] {
+    CROW_ROUTE(app,"/styles.css")([] { // the css
         return load_file("styles.css");
     });
 
-    CROW_ROUTE(app, "/api/autocomplete")([&handler](const crow::request& req){
+    CROW_ROUTE(app, "/api/autocomplete")([&handler](const crow::request& req){ // called when you type
     auto term = req.url_params.get("q");
     std::vector<std::string> suggestions;
     if(term) {
@@ -63,29 +64,30 @@ int main() {
             if (suggestions[0] == suggestions[1]) suggestions.pop_back();
         }
     }
-        crow::json::wvalue result = crow::json::wvalue::list(); // make it a JSON array
-        for(size_t i = 0; i < suggestions.size(); i++) {
+        crow::json::wvalue result = crow::json::wvalue::list(); // make a json array
+        for(auto i = 0; i < suggestions.size(); i++) {
                 result[i]["label"] = suggestions[i];
         }
         crow::response response(result);
-        response.add_header("Access-Control-Allow-Origin", "*");
+        response.add_header("Access-Control-Allow-Origin", "*"); //necessary
         return response;
     });
 
-    CROW_ROUTE(app, "/api/search")([&handler](const crow::request& req){
+    CROW_ROUTE(app, "/api/search")([&handler](const crow::request& req){ //called to search
         auto place = req.url_params.get("place");
-        auto month = req.url_params.get("month");
+        int month = std::stoi(req.url_params.get("month"));
         crow::json::wvalue result;
         std::string jsonData;
         if(place && month) {
-            jsonData = handler.frontendSearch(handler, place, int(*month));
+            std::cout << "Requested month: " << month << " * " << int(month) << std::endl;
+            jsonData = handler.frontendSearch(handler, place, month);
             result = crow::json::load(jsonData);
         }
         std::cout << "SEARCH CALLED: " << jsonData << std::endl;
         crow::response response(result);
-        response.add_header("Access-Control-Allow-Origin", "*");
+        response.add_header("Access-Control-Allow-Origin", "*"); //necessary to make things work
         return response;
     });
 
-    app.port(1337).multithreaded().run();
+    app.port(1337).multithreaded().run(); // host the webserver locally
 }

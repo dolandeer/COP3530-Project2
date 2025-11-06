@@ -217,6 +217,8 @@ public:
         this->uscData = usc;
     }
 
+    void clear() { data.clear(); }
+
     //HELPER FUNCTIONS
     weightedTrie* getTrie() const {return this->trie;}
     std::unordered_map<std::string, std::vector<weatherRecord>> getWeatherEventMap() {
@@ -287,9 +289,21 @@ public:
           << " | cityNodesMap size: " << cityNodesMap.size() << std::endl;
           */
             if (cityNodesMap.empty()) continue; // skip if not found in county map
-
-            int year = std::stoi(yearMonth.substr(0, 4));
-            int month = std::stoi(yearMonth.substr(4, 2));
+            if (yearMonth.length() < 6) {
+                continue; //skip corrupted orundefined data
+            }
+            int year = 0;
+            int month = 0;
+            try {
+                year = std::stoi(yearMonth.substr(0, 4));
+                 month = std::stoi(yearMonth.substr(4, 2));
+            } catch (...) {
+                continue;
+            }
+            if (month < 1 || month > 12) {
+                std::cerr << "INVALID MONTH: " << month << " from " << yearMonth << std::endl;
+                continue;
+            }
             weatherRecord curr;
             curr.eventType = eventType;
             curr.month = month;

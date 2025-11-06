@@ -9,7 +9,6 @@ add_definitions(-DASIO_STANDALONE) # use asio standalone
 add_executable(COP3530-Project2 main.cpp
         crow_all.h
         parse.h
-        distance.h
         weightedTrie.h
         datahandler.h
         minHeap.h)

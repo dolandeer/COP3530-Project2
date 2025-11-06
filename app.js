@@ -134,7 +134,7 @@ function renderResults(data) {
     const card = document.createElement('div');
     card.className = 'tile';
     card.innerHTML = `
-      <h3>${it.place} <span class="badge">${it.month}</span></h3>
+      <h3>${it.place}</span></h3>
       <div class="kv">
         <div><strong>7 Day Avg.</strong><br>${it.avg_temp} °F</div>
         <div><strong>Current Temp.</strong><br>${it.current_temp} °F</div>
@@ -173,7 +173,7 @@ function renderChart(history = []) {
   const max = Math.max(...history);
   const posX = i => leftPad + i * ((W - leftPad - rightPad) / (history.length - 1));
   const posY = v => topPad + (H - topPad - bottomPad) * (1 - (v - min) / (max - min || 1));
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months = ["-7","-6","-5","-4","-3","-2","-1","Today"];
 
   const pts = history.map((v, i) => `${posX(i)},${posY(v)}`).join(' ');
   const svg = `

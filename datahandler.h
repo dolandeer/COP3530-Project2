@@ -23,7 +23,7 @@ class dataHandler {
         std::string month;
         float avg_temp = 0.0;
         float current_temp = 0.0;
-        int storm_events = 0;
+        vector<int> storm_events = {0,0,0,0,0,0,0,0,0,0,0,0};
         float deviation = 0.0;
         std::vector<float> history = {0,0,0,0,0,0,0};
     };
@@ -38,6 +38,7 @@ public:
         this->trie = trie;
         this->minheap = heap;
         this->json = json;
+        noaadata->clear();
         if (!noaadata||!uscdata||!this->trie||!minheap){throw runtime_error("Bad pointers!");}
         usc->readCSV();
         usc->initTrie();
@@ -57,13 +58,17 @@ public:
     frontendResult getWeatherDataForCity(std::string place, int month) {
         std::transform(place.begin(), place.end(), place.begin(), ::tolower);
         frontendResult result;
+        result.storm_events = std::vector<int>(12, 0);
         result.place = place;
         if (!trieSearch(place)) {
             std::cerr << "City not found in trie." << std::endl;
             return result;
         }
         auto events = noaadata->getCountySevereEvents(place);
-        result.storm_events = events.size();
+        for (auto event : events) {
+            if (event.month >= 1 && event.month <= 12)
+                result.storm_events[event.month-1] += 1;
+        }
         vector<float> APIData = APIWeatherDataByCity(place);
         result.current_temp = APIData[7];
         float avg = 0;
@@ -106,7 +111,7 @@ public:
         output << "\"month\":" << '"' <<intToMonth(month)<< '"' << ",";
         output << "\"avg_temp\":" << std::fixed<< std::setprecision(2) << data.avg_temp << ",";
         output << "\"current_temp\":" <<std::fixed<< std::setprecision(2) << data.current_temp << ",";
-        output << "\"storm_events\":" << data.storm_events << ",";
+        output << "\"storm_events\":" << data.storm_events[month-1] << ",";
         output << "\"deviation\":" <<std::fixed << std::setprecision(2) << data.deviation << ",";
         output << "\"history\":[";
         output << data.history[0];
@@ -170,7 +175,7 @@ public:
     }
     int numWords() {return trie->getRoot()->getWeight();}
     //essential USCData functions
-    void iterateUSCMap() { // 31184 cities according to this dataset... google says that's incorrect
+    void iterateUSCMap() { // 31184 cities according to this dataset...
         //my console cant display them all but maybe yours can
         uscdata->iterateMap();
     }
