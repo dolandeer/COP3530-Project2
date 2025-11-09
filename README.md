@@ -10,3 +10,5 @@ Please ensure project is up to date before pushing any code to avoid merge confl
 <b>Libraries Used:</b><br/>
   https://crowcpp.org/master/<br/>
   https://github.com/libcpr/cpr<br/>
+  <br/>
+  <b>Running the Code:</b> A zip file is included within this repository, <br/>to run the code and start the webapp simply open the .bat (Windows) or .command (Mac) file. <br/>If for some reason this does not work, you can run it through the CLion IDE by just clicking run after opening the files locally.
